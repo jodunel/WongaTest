@@ -13,18 +13,18 @@ using System.Text;
 
 namespace WongaTest
 {
-    class ServiceB
+    public class ServiceB
     {
-        static IConnection conn; // connection to RabbitMQ  service
+        private static IConnection conn; // connection to RabbitMQ  service
         private const string messageHeader = "Hello my name is,";
+        public static string messageReceived = "";
+        private static IModel channel;
 
         //==========================================================
         // Program entry point
         //==========================================================
-        static void Main()
+        static public void Main()
         {
-            IModel channel;
-
             ConnectMQ();
             channel = OpenNameChannel("name");
             var consumer = new EventingBasicConsumer(channel);
@@ -34,9 +34,9 @@ namespace WongaTest
             consumer.Received += (model, ea) =>
             {
                 var body = ea.Body;
-                var message = Encoding.UTF8.GetString(body);
-                if (message.Substring(0, messageHeader.Length) == "Hello my name is,")
-                    Console.WriteLine(" Hello {0}, I am your father (press [enter] to exit)", message.Substring(messageHeader.Length, message.Length - messageHeader.Length));
+                messageReceived = Encoding.UTF8.GetString(body);
+                if (messageReceived.Substring(0, messageHeader.Length) == "Hello my name is,")
+                    Console.WriteLine(" Hello {0}, I am your father (press [enter] to exit)", messageReceived.Substring(messageHeader.Length, messageReceived.Length - messageHeader.Length));
             };
             channel.BasicConsume(queue: "name",
                                  autoAck: true,
@@ -54,7 +54,7 @@ namespace WongaTest
         //==========================================================
         //Connect to the RabbitMQ service on the localhost
         //==========================================================
-        private static void ConnectMQ()
+        public static void ConnectMQ()
         {
             ConnectionFactory factory;
 
@@ -72,9 +72,9 @@ namespace WongaTest
         //==========================================================
         //Open a channel
         //==========================================================
-        private static IModel OpenNameChannel(string name)
+        public static IModel OpenNameChannel(string name)
         {
-            IModel channel = null;
+            channel = null;
 
             try
             {
@@ -92,5 +92,6 @@ namespace WongaTest
 
             return channel;
         }
+
     }
 }

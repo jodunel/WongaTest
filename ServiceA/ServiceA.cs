@@ -12,32 +12,26 @@ using System.Text;
 
 namespace WongaTest
 {
-    class ServiceA
+    public class ServiceA
     {
         static IConnection conn; // connection to RabbitMQ  service
-        private const string messageHeader = "Hello my name is,";
+        static public IModel channel;
 
         //==========================================================
         // Program entry point
         //==========================================================
-        static void Main()
+        static public void Main()
         {
-            IModel channel;
-
             ConnectMQ();
             channel = OpenNameChannel("name");
-            string message;
             string name;
 
             do
             {
                 Console.Write("Enter name (Blank name to exit) : "); 
-                name =  Console.ReadLine(); 
-                message = messageHeader + name;
-
-                var body = Encoding.UTF8.GetBytes(message);
-                channel.BasicPublish(exchange: "", routingKey: "name", basicProperties: null, body: body);
-                Console.WriteLine(" Sent {0}", message);
+                name =  Console.ReadLine();
+                if (name != "") 
+                    sendNameMessage(name);
             }
             while (name != "");
 
@@ -50,7 +44,7 @@ namespace WongaTest
         //==========================================================
         //Connect to the RabbitMQ service on the localhost
         //==========================================================
-        private static void ConnectMQ()
+        public static void ConnectMQ()
         {
             ConnectionFactory factory;
 
@@ -68,9 +62,8 @@ namespace WongaTest
         //==========================================================
         //Open a channel
         //==========================================================
-        private static IModel OpenNameChannel(string name)
+        public static IModel OpenNameChannel(string name)
         {
-            IModel channel = null;
 
             try
             {
@@ -87,6 +80,21 @@ namespace WongaTest
             }
 
             return channel;
+        }
+
+        //==========================================================
+        // send message
+        //==========================================================
+        public static void sendNameMessage(string name)
+        {
+            string message;
+
+            message = "Hello my name is," + name;
+
+            var body = Encoding.UTF8.GetBytes(message);
+            channel.BasicPublish(exchange: "", routingKey: "name", basicProperties: null, body: body);
+            Console.WriteLine(" Sent : {0}", message);
+
         }
     }
 }
